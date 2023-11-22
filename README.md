@@ -22,5 +22,5 @@ docker-compose exec web bash
 ```
 Luego dentro del contenedor: 
 ```bash
-python manage.py test authentication_app.tests.test_views
+python manage.py test authentication_app/tests
 ```
