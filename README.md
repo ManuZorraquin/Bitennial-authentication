@@ -12,7 +12,7 @@ docker-compose up
 ```
 
 ## Prueba de Endpoints en Postman
-Puedes probar los endpoints utilizando Postman. Para esto, entrá a este link, copiá el contenido e importalo en Postman. URL:  https://api.postman.com/collections/26913797-c69102e2-8415-4e39-8417-1fe67dc9cb0f?access_key=PMAT-01HFW00FVX4NRMFWJ9AV6H8A9C
+Puedes probar los endpoints utilizando Postman. Para esto, copia este link e importalo en Postman. URL:  https://api.postman.com/collections/26913797-c69102e2-8415-4e39-8417-1fe67dc9cb0f?access_key=PMAT-01HFW00FVX4NRMFWJ9AV6H8A9C
 
 
 ## Ejecución de pruebas por consola
