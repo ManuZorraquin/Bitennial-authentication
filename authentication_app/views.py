@@ -58,7 +58,6 @@ class UpdateUserProfileView(UpdateAPIView):
         return self.request.user
 
     def partial_update(self, request):
-        print(request.data)
         instance = self.get_object()
         serializer = self.serializer_class(instance, data=request.data, partial=True)
 
