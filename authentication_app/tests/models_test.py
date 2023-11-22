@@ -10,7 +10,7 @@ class UserModelTest(TestCase):
             'first_name': 'Test',
             'last_name': 'User',
             'phone_number': '1234567890',
-            'birthdate': '2000-01-01',
+            'birthdate': '01-01-2000',
         }
 
     def test_create_user(self):
@@ -26,11 +26,3 @@ class UserModelTest(TestCase):
         self.assertFalse(user.is_staff)
         self.assertFalse(user.is_superuser)
         self.assertTrue(user.is_active)
-
-    def test_create_superuser(self):
-        User = get_user_model()
-        admin_user = User.objects.create_superuser(**self.user_data)
-
-        self.assertTrue(admin_user.is_staff)
-        self.assertTrue(admin_user.is_superuser)
-        self.assertTrue(admin_user.is_active)

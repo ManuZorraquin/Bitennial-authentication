@@ -13,25 +13,26 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'password', 'password2', 'first_name', 'last_name', 'phone_number', 'birthdate']
+        fields = ['id', 'email', 'password', 'password2', 'first_name', 'last_name', 'phone_number', 'birthdate']
 
     def validate(self, attrs):
+        #validaciones personalizadas
         if "@" not in attrs.get('email', '') or "." not in attrs.get('email', ''):
-            raise serializers.ValidationError(_("Invalid Email."))
+            raise serializers.ValidationError({"fieldError":_("Invalid Email.")})
         if attrs.get('phone_number', '') != '':
             if not re.match(r'^\d{9,15}$', attrs.get('phone_number', '')):
-                raise serializers.ValidationError(_("Phone number must contain only numbers and be between 9 and 15 digits."))
-        # if attrs.get('birthdate', '') != '':
-        #     try:
-        #         datetime.strptime(attrs.get('birthdate', ''), "%d/%m/%Y")
-        #     except ValueError:
-        #         raise serializers.ValidationError(_("Ingresa la fecha de nacimiento en formato dd/mm/yyyy."))
+                raise serializers.ValidationError({"fieldError":_("Phone number must contain only numbers and be between 9 and 15 digits.")})
+        if attrs.get('birthdate', '') != '':
+            try:
+                datetime.strptime(attrs.get('birthdate', ''), "%d/%m/%Y")
+            except ValueError:
+                raise serializers.ValidationError({"fieldError":_("Ingresa la fecha de nacimiento en formato dd/mm/yyyy.")})
         password = attrs.get('password', '')
         password2 = attrs.get('password2', '')
         if not re.match(r'^(?=.*[A-Z])(?=.*\d).{8,68}$', password):
-            raise serializers.ValidationError(_("Password must contain at least 8 characters, including uppercase letters and numbers."))
+            raise serializers.ValidationError({"fieldError":_("Password must contain at least 8 characters, including uppercase letters and numbers.")})
         if password != password2:
-            raise serializers.ValidationError(_("Passwords do not match."))
+            raise serializers.ValidationError({"fieldError":_("Passwords do not match.")})
         return attrs
 
     def create(self, validated_data):
@@ -69,13 +70,41 @@ class UserLoginSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'first_name', 'last_name', 'phone_number', 'birthdate']
+        fields = ['id', 'email', 'first_name', 'last_name', 'phone_number', 'birthdate']
+        
+
+class UserUpdateProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'first_name', 'last_name', 'phone_number', 'birthdate']
+        
+    def to_internal_value(self, data):
+        # Filtra solo los campos que tienen un valor NO vacío
+        data = {key: value for key, value in data.items() if value not in ['', None]}
+
+        # Validación personalizada para el campo 'email'
+        email_value = data.get('email', '')
+        if email_value == '':
+            # Si el campo 'email' está vacío, establece el valor actual del usuario
+            data['email'] = self.instance.email
+            
+        if data.get('phone_number', '') != '':
+            if not re.match(r'^\d{9,15}$', data.get('phone_number', '')):
+                raise serializers.ValidationError({"fieldError":_("Phone number must contain only numbers and be between 9 and 15 digits.")})
+
+        return super().to_internal_value(data)
         
         
 class ChangePasswordSerializer(serializers.Serializer):
     current_password = serializers.CharField(max_length=68, min_length=8, write_only=True, required=True)
     new_password = serializers.CharField(max_length=68, min_length=8, write_only=True, required=True)
     confirm_password = serializers.CharField(max_length=68, min_length=8, write_only=True, required=True)
-    
-
-    
+            
+    def validate(self, attrs):
+        password = attrs.get('new_password', '')
+        password2 = attrs.get('confirm_password', '')
+        if not re.match(r'^(?=.*[A-Z])(?=.*\d).{8,68}$', password):
+            raise serializers.ValidationError({"fieldError":_("Password must contain at least 8 characters, including uppercase letters and numbers.")})
+        if password != password2:
+            raise serializers.ValidationError({"fieldError":_("Passwords do not match.")})
+        return attrs

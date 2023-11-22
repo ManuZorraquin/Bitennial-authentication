@@ -1,11 +1,8 @@
-from django.shortcuts import render
 from rest_framework.generics import GenericAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
-from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserRegisterSerializer, UserLoginSerializer, UserProfileSerializer, ChangePasswordSerializer
-from .models import User
+from .serializers import UserRegisterSerializer, UserLoginSerializer, UserProfileSerializer, ChangePasswordSerializer, UserUpdateProfileSerializer
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -16,7 +13,6 @@ class RegisterUserView(GenericAPIView):
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
-        print(serializer)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             user = serializer.data
@@ -50,21 +46,36 @@ class LoginView(GenericAPIView):
 class UserProfileView(RetrieveAPIView):
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
-
+    
     def get_object(self):
-        return Response({"status": "success", "message": "User retrieved successfuly", "data": self.request.user}, status=status.HTTP_200_OK)
+        return self.request.user
     
 class UpdateUserProfileView(UpdateAPIView):
-    serializer_class = UserProfileSerializer
+    serializer_class = UserUpdateProfileSerializer
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        return Response({"status": "success", "message": "User updated successfuly", "data": self.request.user}, status=status.HTTP_200_OK)
+        return self.request.user
+
+    def partial_update(self, request):
+        print(request.data)
+        instance = self.get_object()
+        serializer = self.serializer_class(instance, data=request.data, partial=True)
+
+        serializer.is_valid(raise_exception=True)
+        
+        # Verifica si todos los campos están vacíos
+        if all(value == '' or value is None for key, value in request.data.items()):
+            return Response({'message': 'No fields to update. Please enter new values.', 'status': 'success'}, status=status.HTTP_200_OK)
+
+        self.perform_update(serializer)
+
+        return Response(serializer.data)
     
 
 class ChangePasswordView(UpdateAPIView):
     serializer_class = ChangePasswordSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]    
 
     def get_object(self):
         return self.request.user
